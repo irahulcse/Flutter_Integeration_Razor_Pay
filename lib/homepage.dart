@@ -1,7 +1,6 @@
-import 'dart:html';
-
 import 'package:flutter/material.dart';
 import 'package:razorpay_flutter/razorpay_flutter.dart';
+import 'package:toast/toast.dart';
 
 class HomePage extends StatefulWidget {
   @override
@@ -10,6 +9,7 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   Razorpay razorpay;
+  TextEditingController textEditingController = new TextEditingController();
 
   @override
   void initState() {
@@ -17,7 +17,51 @@ class _HomePageState extends State<HomePage> {
     super.initState();
 
     razorpay = new Razorpay();
-    razorpay.on(event, handler)
+    razorpay.on(Razorpay.EVENT_PAYMENT_SUCCESS, handlePaymentSuccess);
+    razorpay.on(Razorpay.EVENT_PAYMENT_ERROR, handleError);
+    razorpay.on(Razorpay.EVENT_EXTERNAL_WALLET, handleWallet);
+  }
+
+  @override
+  void openCheckOut() {
+    String api;
+    var options = {
+      "key": "$api",
+      "amount": textEditingController.text,
+      "name": "Sample App",
+      "description": "Payment for some random product",
+      "prefill": {
+        "contact": "8459701511",
+        "email": "1rahulchandra1@gmail.com",
+      },
+      "external": {
+        "wallets": ["paytm"],
+      }
+    };
+
+    try {
+      razorpay.open(options);
+    } catch (e) {
+      print(e.toString());
+    }
+  }
+
+  void dispose() {
+    super.dispose();
+    razorpay.clear();
+  }
+
+  void handlePaymentSuccess() {
+    print("Payment Success");
+    Toast.show("Payment Successful", context);
+  }
+
+  void handleError() {
+    Toast.show("Error In Payment", context);
+  }
+
+  void handleWallet() {
+    Toast.show("Wallet Handling in Progress", context);
   }
 
   @override
@@ -38,13 +82,26 @@ class _HomePageState extends State<HomePage> {
       body: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          TextField(),
+          TextField(
+            controller: textEditingController,
+            decoration: InputDecoration(hintText: "Amount to Pay"),
+          ),
           SizedBox(
             height: 16,
           ),
           RaisedButton(
-            child: Text("Donate Now Button"),
-            onPressed: () {},
+            color: Colors.purple,
+            child: Text(
+              "Donate Now Button",
+              style: TextStyle(
+                color: Colors.black87,
+                fontSize: 12,
+                fontWeight: FontWeight.w800,
+              ),
+            ),
+            onPressed: () {
+              openCheckOut();
+            },
           )
         ],
       ),
